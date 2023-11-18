@@ -11,9 +11,13 @@ def clean_data(df):
         df['EndTime'] = pd.to_datetime(df['EndTime'], format='%Y-%m-%dT%H:%M+00:00Z')
     return df.dropna()  # Placeholder for cleaning, replace with actual cleaning operations
 
-def preprocess_data(df):
-    df['Interval'] = (df['EndTime'] - df['StartTime']).dt.total_seconds() / 3600
-    df['StartTime'] = df['StartTime'].dt.floor('H')
+def preprocess_data(df, data_type):
+    # Check if 'load' column exists and create it if it doesn't for 'load' data type
+    if data_type == 'load' and 'load' not in df.columns:
+        df['load'] = 0
+    if 'StartTime' in df.columns and 'EndTime' in df.columns:
+        df['Interval'] = (df['EndTime'] - df['StartTime']).dt.total_seconds() / 3600
+        df['StartTime'] = df['StartTime'].dt.floor('H')
     return df
 
 def save_data(df, output_file):
@@ -45,12 +49,19 @@ def main(input_folder, output_file):
             file_path = os.path.join(input_folder, filename)
             
             # Extract type and country information from the file name
-            file_parts = filename.split('_')
+            file_parts = filename.split('.')[0].split('_')
             data_type = file_parts[0]  # Extracting 'gen' or 'load'
             country = file_parts[1]    # Extracting country code
             
             # Read the CSV file
             df = load_data(file_path)
+            if 'PsrType' not in df.columns:
+                df["PsrType"] = 'AA'
+            if 'quantity' not in df.columns:
+                df["quantity"] = 0
+            if 'Load' not in df.columns:
+                df["Load"] = 0
+
 
             # Add 'type' and 'country' columns based on file name information
             df['DataType'] = data_type
@@ -58,7 +69,7 @@ def main(input_folder, output_file):
 
             # Clean and preprocess the data
             df_clean = clean_data(df)
-            df_processed = preprocess_data(df_clean)
+            df_processed = preprocess_data(df_clean, data_type)
             
             # Append the current DataFrame to the aggregated_data
             aggregated_data = pd.concat([aggregated_data, df_processed])
@@ -69,11 +80,12 @@ def main(input_folder, output_file):
     # Group by required columns and sum the quantity while getting the first 'EndTime'
     grouped_data = aggregated_data.groupby(['Country', 'DataType', 'AreaID', 'PsrType', pd.Grouper(key='StartTime', freq='1H')]).agg({
         'quantity': 'sum',
+        'Load': 'sum',
         'EndTime': 'first'
     }).reset_index()
-
+    grouped_data["total"] = grouped_data["quantity"].where(grouped_data["quantity"] > 0, grouped_data["Load"])
     # Reorder columns
-    grouped_data = grouped_data[['Country', 'DataType', 'AreaID', 'StartTime', 'EndTime', 'PsrType', 'quantity']]
+    grouped_data = grouped_data[['Country', 'DataType', 'AreaID', 'StartTime', 'EndTime', 'PsrType', 'total']]
 
     # Save the grouped data to an output file
     save_data(grouped_data, output_file)
