@@ -46,7 +46,7 @@ def get_gen_data_from_entsoe(regions, periodStart='202201010000', periodEnd='202
 
     # General parameters for the API
     params = {
-        'securityToken': '1d9cd4bd-f8aa-476c-8cc1-3442dc91506d',
+        'securityToken': 'b5b8c21b-a637-4e17-a8fe-0d39a16aa849',
         'documentType': 'A75',
         'processType': 'A16',
         'outBiddingZone_Domain': 'FILL_IN', # used for Load data
