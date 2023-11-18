@@ -1,9 +1,9 @@
 import argparse
 import datetime
-import pandas as pd
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from utils import perform_get_request, xml_to_load_dataframe, xml_to_gen_data
 
-def get_load_data_from_entsoe(regions, periodStart='202302240000', periodEnd='202303240000', output_path='./data'):
+def get_load_data_from_entsoe(regions, periodStart='202201010000', periodEnd='202301010000', output_path='./data'):
     
     # TODO: There is a period range limit of 1 year for this API. Process in 1 year chunks if needed
     
@@ -37,7 +37,7 @@ def get_load_data_from_entsoe(regions, periodStart='202302240000', periodEnd='20
        
     return
 
-def get_gen_data_from_entsoe(regions, periodStart='202302240000', periodEnd='202303240000', output_path='./data'):
+def get_gen_data_from_entsoe(regions, periodStart='202201010000', periodEnd='202301010000', output_path='./data'):
     
     # TODO: There is a period range limit of 1 day for this API. Process in 1 day chunks if needed
 
@@ -46,7 +46,7 @@ def get_gen_data_from_entsoe(regions, periodStart='202302240000', periodEnd='202
 
     # General parameters for the API
     params = {
-        'securityToken': '1d9cd4bd-f8aa-476c-8cc1-3442dc91506d',
+        'securityToken': 'b5b8c21b-a637-4e17-a8fe-0d39a16aa849',
         'documentType': 'A75',
         'processType': 'A16',
         'outBiddingZone_Domain': 'FILL_IN', # used for Load data
@@ -57,7 +57,7 @@ def get_gen_data_from_entsoe(regions, periodStart='202302240000', periodEnd='202
 
     # Loop through the regions and get data for each region
     for region, area_code in regions.items():
-        print(f'Fetching data for {region}...')
+        print(f'Fetching data for {region} from {periodStart} to {periodEnd}...')
         params['outBiddingZone_Domain'] = area_code
         params['in_Domain'] = area_code
     
@@ -70,8 +70,8 @@ def get_gen_data_from_entsoe(regions, periodStart='202302240000', periodEnd='202
         # Save the dfs to CSV files
         for psr_type, df in dfs.items():
             # Save the DataFrame to a CSV file
-            df.to_csv(f'{output_path}/gen_{region}_{psr_type}.csv', index=False)
-    
+            df.to_csv(f'{output_path}/gen_{region}_{psr_type}_{periodStart}.csv', index=False)
+
     return
 
 
@@ -86,7 +86,7 @@ def parse_arguments():
     parser.add_argument(
         '--end_time', 
         type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'), 
-        default=datetime.datetime(2022, 1, 1), 
+        default=datetime.datetime(2023, 1, 2), 
         help='End time for the data to download, format: YYYY-MM-DD'
     )
     parser.add_argument(
@@ -96,6 +96,7 @@ def parse_arguments():
         help='Name of the output file'
     )
     return parser.parse_args()
+
 
 def main(start_time, end_time, output_path):
     
@@ -118,8 +119,28 @@ def main(start_time, end_time, output_path):
     # Get Load data from ENTSO-E
     get_load_data_from_entsoe(regions, start_time, end_time, output_path)
 
-    # Get Generation data from ENTSO-E
-    get_gen_data_from_entsoe(regions, start_time, end_time, output_path)
+    # Define the start and end dates
+    start_date = datetime.datetime.strptime('202201010000', '%Y%m%d%H%M')
+    end_date = datetime.datetime.strptime('202301010000', '%Y%m%d%H%M')
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = []
+        current_date = start_date
+
+        while current_date <= end_date:
+            period_start = current_date.strftime('%Y%m%d%H%M')
+            period_end = (current_date + datetime.timedelta(days=1)).strftime('%Y%m%d%H%M')
+
+            # Submit the task to the executor
+            future = executor.submit(get_gen_data_from_entsoe, regions, period_start, period_end, output_path)
+            futures.append(future)
+
+            current_date += datetime.timedelta(days=1)
+
+        # Wait for all threads to finish
+        for future in as_completed(futures):
+            future.result()
+
 
 if __name__ == "__main__":
     args = parse_arguments()
