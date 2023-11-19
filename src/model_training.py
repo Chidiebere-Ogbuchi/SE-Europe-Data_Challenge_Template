@@ -1,23 +1,180 @@
+# import pandas as pd
+# import argparse
+
+# def load_data(file_path):
+#     # TODO: Load processed data from CSV file
+#     return df
+
+# def split_data(df):
+#     # TODO: Split data into training and validation sets (the test set is already provided in data/test_data.csv)
+#     return X_train, X_val, y_train, y_val
+
+# def train_model(X_train, y_train):
+#     # TODO: Initialize your model and train it
+#     return model
+
+# def save_model(model, model_path):
+#     # TODO: Save your trained model
+#     pass
+
+# def parse_arguments():
+#     parser = argparse.ArgumentParser(description='Model training script for Energy Forecasting Hackathon')
+#     parser.add_argument(
+#         '--input_file', 
+#         type=str, 
+#         default='data/processed_data.csv', 
+#         help='Path to the processed data file to train the model'
+#     )
+#     parser.add_argument(
+#         '--model_file', 
+#         type=str, 
+#         default='models/model.pkl', 
+#         help='Path to save the trained model'
+#     )
+#     return parser.parse_args()
+
+# def main(input_file, model_file):
+#     df = load_data(input_file)
+#     X_train, X_val, y_train, y_val = split_data(df)
+#     model = train_model(X_train, y_train)
+#     save_model(model, model_file)
+
+# if __name__ == "__main__":
+#     args = parse_arguments()
+#     main(args.input_file, args.model_file)
+
+
+
 import pandas as pd
+from prophet import Prophet
+import matplotlib.pyplot as plt
 import argparse
+import pickle
 
 def load_data(file_path):
-    # TODO: Load processed data from CSV file
+    """
+    Load data from a CSV file, preprocess it, and filter relevant information.
+
+    Parameters:
+    - file_path (str): Path to the CSV file.
+
+    Returns:
+    - pd.DataFrame: Processed and filtered DataFrame.
+    """
+    df = pd.read_csv(file_path)
+    df = df.drop(columns=['AreaID', 'EndTime'])
+    countries = ['DE', 'DK', 'SP', 'UK', 'HU', 'SE', 'IT', 'PO', 'NL']
+    PsrTypes = ['B01', 'B09', 'B10', 'B11', 'B12', 'B13', 'B15', 'B16', 'B18', 'B19', 'AA']
+    df = df[df['Country'].isin(countries) & df['PsrType'].isin(PsrTypes)]
+    df['StartTime'] = pd.to_datetime(df['StartTime'])
+    df = df.groupby(['Country', 'StartTime', 'DataType'])['total'].sum().unstack(fill_value=0).reset_index()
+    df['surplus'] = df['gen'] - df['load']
     return df
 
 def split_data(df):
-    # TODO: Split data into training and validation sets (the test set is already provided in data/test_data.csv)
-    return X_train, X_val, y_train, y_val
+    """
+    Split data into training and testing sets based on a specific date.
 
-def train_model(X_train, y_train):
-    # TODO: Initialize your model and train it
-    return model
+    Parameters:
+    - df (pd.DataFrame): Input DataFrame.
+
+    Returns:
+    - pd.DataFrame: Training DataFrame.
+    """
+    start_split_date = '2022-01-01'
+    end_split_date = '2022-04-09'
+    data = df.loc[(df['StartTime'] >= start_split_date) & (df['StartTime'] < end_split_date)]
+    total_days = (data['StartTime'].max() - data['StartTime'].min()).days
+    split_date = data['StartTime'].min() + pd.to_timedelta(0.8 * total_days, unit='D')
+    train = data[data['StartTime'] <= split_date]
+    test = data[data['StartTime'] > split_date]
+    test_data_path = './data/test_data.csv'
+    test.to_csv(test_data_path, index=False)
+    print(f"Training Data Size: {len(train)}, Test Data Size: {len(test)}")
+    return train
+
+def prep_for_prophet(data, index='index', target_col='surplus'):
+    """
+    Prepare data for use with the Prophet time series forecasting model.
+
+    Parameters:
+    - data (pd.DataFrame): Input DataFrame.
+    - index (str): Column name to be used as the index.
+    - target_col (str): Column name to be used as the target variable.
+
+    Returns:
+    - pd.DataFrame: Prepared DataFrame for Prophet.
+    """
+    data = data.reset_index()
+    data[['ds', 'y']] = data[[index, target_col]]
+    data.drop([index, target_col], axis=1, inplace=True)
+    data.sort_values(by=['ds'], inplace=True)
+    return data
+
+def train_model(train):
+    """
+    Train Prophet models for each country and store them in a dictionary.
+
+    Parameters:
+    - train (pd.DataFrame): Training DataFrame.
+
+    Returns:
+    - dict: Dictionary containing trained Prophet models for each country.
+    """
+    trained_models = {}
+    countries = ['DE', 'DK', 'SP', 'UK', 'HU', 'SE', 'IT', 'PO', 'NL']
+
+    for country in countries:
+        try:
+            country_data = train[train['Country'] == country]
+            prophet_data = prep_for_prophet(country_data, index='StartTime', target_col='surplus')
+            model = Prophet()
+            model.fit(prophet_data)
+            trained_models[country] = model
+            print(f"Successfully trained model for {country}")
+
+        except Exception as e:
+            print(f"Error processing {country}: {str(e)}")
+            continue
+
+    return trained_models
+
+def save_models(models):
+    """
+    Save trained Prophet models to disk.
+
+    Parameters:
+    - models (dict): Dictionary containing trained Prophet models.
+
+    Returns:
+    - None
+    """
+    for country, model in models.items():
+        model_path = f'models/{country}_model.pkl'
+        save_model(model, model_path)
+        print(f"Model for {country} saved to {model_path}")
 
 def save_model(model, model_path):
-    # TODO: Save your trained model
-    pass
+    """
+    Save a single trained Prophet model to disk.
+
+    Parameters:
+    - model: Trained Prophet model.
+    - model_path (str): Path to save the model.
+
+    Returns:
+    - None
+    """
+    with open(model_path, 'wb') as model_file:
+        pickle.dump(model, model_file)
 
 def parse_arguments():
+    """
+    Parse command line arguments.
+
+    Returns:
+    - argparse.Namespace: Parsed command line arguments.
+    """
     parser = argparse.ArgumentParser(description='Model training script for Energy Forecasting Hackathon')
     parser.add_argument(
         '--input_file', 
@@ -34,10 +191,20 @@ def parse_arguments():
     return parser.parse_args()
 
 def main(input_file, model_file):
+    """
+    Main function to execute the training process.
+
+    Parameters:
+    - input_file (str): Path to the processed data file.
+    - model_file (str): Path to save the trained model.
+
+    Returns:
+    - None
+    """
     df = load_data(input_file)
-    X_train, X_val, y_train, y_val = split_data(df)
-    model = train_model(X_train, y_train)
-    save_model(model, model_file)
+    train = split_data(df)
+    models = train_model(train)
+    save_models(models)
 
 if __name__ == "__main__":
     args = parse_arguments()
