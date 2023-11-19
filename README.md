@@ -28,7 +28,7 @@ Template repository to work with for the NUWE - Schneider Electric European Data
 - 1d9cd4bd-f8aa-476c-8cc1-3442dc91506d
 
 
-#Repo Structure:
+# Repo Structure:
 
 ## Directory Structure Explanation
 
@@ -79,14 +79,12 @@ Before running the script, ensure you have the following dependencies installed:
 - [matplotlib](https://matplotlib.org/)
 
 You can install these dependencies using the following command:
-
-```bash
 pip install pandas prophet scikit-learn numpy matplotlib
 
 
-## Approach
+# Approach
 
-### Data Ingestion
+## Data Ingestion
 The first step in our approach is Data Ingestion. We leverage the ENTSO-E Transparency portal API to retrieve time-series data of hourly granularity. The data includes electricity consumption (load), wind energy generation, solar energy generation, and other green energy generation for nine European countries. This API allows us to access real-time and historical data, providing the foundation for our forecasting models.
 
 Period: 01-01-2022 to 01-01-2023,
@@ -106,17 +104,17 @@ PsrTypes: Green Energy we focused on
 | B19  | Wind Onshore                      |
 
 
-### Data Processing
+## Data Processing
 Following Data Ingestion, the next crucial step is Data Processing. The raw data obtained from the API might be at varying intervals (15 min, 30 min, or 1h) for different countries. To ensure consistency, we homogenize the data to 1-hour intervals. This involves cleaning, aggregating, and structuring the data to create a cohesive dataset for training and testing our models. The processed data is then stored in 'train.csv' and 'test.csv' files. We answer the following?
 #### How many data points have we ingested?
 #### Do we loose any data during data processing?
 #### Which data have we lost?
 #### Why did we loose it? However, it is up to you to define the specific measures you are monitoring.
 
-### Model Training
+## Model Training
 The heart of our approach lies in Model Training. We utilize machine learning techniques, particularly time-series forecasting models **Prophet**, to train on the processed dataset. The goal is to capture the patterns and trends in surplus energy generation for each country. Training is performed separately for each country, allowing the models to learn country-specific nuances.
 
-### Model Prediction
+## Model Prediction
 Once the models are trained, we save them in a custom pickle (.pkl) corresponding to each country. Using the trained models, we make predictions for each country on which will have the highest surplus of green energy in the next hour. This prediction is valuable for making informed decisions on optimizing computing tasks to utilize green energy effectively and reduce CO2 emissions. The predictions are then saved in the 'predictions.json' file.
 
 Our approach is designed to align with Schneider Electric's vision for sustainability, aiming not only to predict energy surpluses accurately but also to contribute to reducing the environmental impact of the computing industry. The modular structure of Data Ingestion, Data Processing, Model Training, and Model Prediction allows for flexibility, scalability, and easy integration of new methodologies or models in the future.
