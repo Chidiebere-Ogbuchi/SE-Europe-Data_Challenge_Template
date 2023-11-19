@@ -113,6 +113,7 @@ Following Data Ingestion, the next crucial step is Data Processing. The raw data
 
 ## Model Training
 The heart of our approach lies in Model Training. We utilize machine learning techniques, particularly time-series forecasting models **Prophet**, to train on the processed dataset. The goal is to capture the patterns and trends in surplus energy generation for each country. Training is performed separately for each country, allowing the models to learn country-specific nuances. We split the daa 80% for training and 20% for testing.
+#### Why we selected Prophet? Prophet is very versatile and good for Missing Data Handling (Robust to datasets with missing values). Also the forecasting decomposes time series for better interpretability. Asides the ease of use, it will be easy to scale efficiently handle larger datasets whic will be very important for Schneider electric..
 
 ## Model Prediction
 Once the models are trained, we save them in a custom pickle (.pkl) corresponding to each country. Using the trained models, we make predictions for each country on which will have the highest surplus of green energy in the next hour.
