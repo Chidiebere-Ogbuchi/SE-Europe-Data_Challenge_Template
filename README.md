@@ -102,21 +102,26 @@ PsrTypes: Green Energy we focused on
 | B13  | Marine                            |
 | B15  | Other renewable                   |
 | B16  | Solar                             |
-| B18  | Wind Offshore                      |
-| B19  | Wind Onshore                       |
+| B18  | Wind Offshore                     |
+| B19  | Wind Onshore                      |
 
 
 ### Data Processing
-Following Data Ingestion, the next crucial step is Data Processing. The raw data obtained from the API might be at varying intervals (15 min, 30 min, or 1h) for different countries. To ensure consistency, we homogenize the data to 1-hour intervals. This involves cleaning, aggregating, and structuring the data to create a cohesive dataset for training and testing our models. The processed data is then stored in 'train.csv' and 'test.csv' files.
+Following Data Ingestion, the next crucial step is Data Processing. The raw data obtained from the API might be at varying intervals (15 min, 30 min, or 1h) for different countries. To ensure consistency, we homogenize the data to 1-hour intervals. This involves cleaning, aggregating, and structuring the data to create a cohesive dataset for training and testing our models. The processed data is then stored in 'train.csv' and 'test.csv' files. We answer the following?
+#### How many data points have we ingested?
+#### Do we loose any data during data processing?
+#### Which data have we lost?
+#### Why did we loose it? However, it is up to you to define the specific measures you are monitoring.
 
 ### Model Training
-The heart of our approach lies in Model Training. We utilize machine learning techniques, particularly time-series forecasting models like Prophet, to train on the processed dataset. The goal is to capture the patterns and trends in electricity consumption and green energy generation for each country. Training is performed separately for each country, allowing the models to learn country-specific nuances.
+The heart of our approach lies in Model Training. We utilize machine learning techniques, particularly time-series forecasting models **Prophet**, to train on the processed dataset. The goal is to capture the patterns and trends in surplus energy generation for each country. Training is performed separately for each country, allowing the models to learn country-specific nuances.
 
 ### Model Prediction
-Once the models are trained, we move to Model Prediction. Using the trained models, we make predictions for each country on which will have the highest surplus of green energy in the next hour. This prediction is valuable for making informed decisions on optimizing computing tasks to utilize green energy effectively and reduce CO2 emissions. The predictions are then saved in the 'predictions.json' file.
+Once the models are trained, we save them in a custom pickle (.pkl) corresponding to each country. Using the trained models, we make predictions for each country on which will have the highest surplus of green energy in the next hour. This prediction is valuable for making informed decisions on optimizing computing tasks to utilize green energy effectively and reduce CO2 emissions. The predictions are then saved in the 'predictions.json' file.
 
 Our approach is designed to align with Schneider Electric's vision for sustainability, aiming not only to predict energy surpluses accurately but also to contribute to reducing the environmental impact of the computing industry. The modular structure of Data Ingestion, Data Processing, Model Training, and Model Prediction allows for flexibility, scalability, and easy integration of new methodologies or models in the future.
 
+#### Other Model recommendations are SARIMA and LSTM
 
 
 
