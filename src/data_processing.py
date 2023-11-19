@@ -2,6 +2,8 @@ import os
 import pandas as pd
 import argparse
 
+pd.options.mode.chained_assignment = None
+
 def load_data(file_path):
     return pd.read_csv(file_path)
 
@@ -34,8 +36,8 @@ def parse_arguments():
     parser.add_argument(
         '--output_file', 
         type=str, 
-        default='./agg_data/aggregated_data.csv', 
-        help='Path to save the aggregated data'
+        default='./processed_data/processed_data.csv', 
+        help='Path to save the processed data'
     )
     return parser.parse_args()
 
@@ -47,7 +49,7 @@ def main(input_folder, output_file):
     for filename in os.listdir(input_folder):
         if filename.endswith('.csv') and 'test' not in filename:
             file_path = os.path.join(input_folder, filename)
-            
+            print(f'Processing {filename}...')
             # Extract type and country information from the file name
             file_parts = filename.split('.')[0].split('_')
             data_type = file_parts[0]  # Extracting 'gen' or 'load'
@@ -56,7 +58,7 @@ def main(input_folder, output_file):
             # Read the CSV file
             df = load_data(file_path)
             if 'PsrType' not in df.columns:
-                df["PsrType"] = 'AA'
+                df["PsrType"] = 'LOAD'
             if 'quantity' not in df.columns:
                 df["quantity"] = 0
             if 'Load' not in df.columns:

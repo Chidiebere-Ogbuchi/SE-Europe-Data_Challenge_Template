@@ -13,7 +13,7 @@ def get_load_data_from_entsoe(regions, periodStart='202201010000', periodEnd='20
     # General parameters for the API
     # Refer to https://transparency.entsoe.eu/content/static_content/Static%20content/web%20api/Guide.html#_documenttype
     params = {
-        'securityToken': '1d9cd4bd-f8aa-476c-8cc1-3442dc91506d',
+        'securityToken': '2334f370-0c85-405e-bb90-c022445bd273',
         'documentType': 'A65',
         'processType': 'A16',
         'outBiddingZone_Domain': 'FILL_IN', # used for Load data
@@ -46,7 +46,7 @@ def get_gen_data_from_entsoe(regions, periodStart='202201010000', periodEnd='202
 
     # General parameters for the API
     params = {
-        'securityToken': 'b5b8c21b-a637-4e17-a8fe-0d39a16aa849',
+        'securityToken': '1d9cd4bd-f8aa-476c-8cc1-3442dc91506d',
         'documentType': 'A75',
         'processType': 'A16',
         'outBiddingZone_Domain': 'FILL_IN', # used for Load data
@@ -117,7 +117,7 @@ def main(start_time, end_time, output_path):
     end_time = end_time.strftime('%Y%m%d%H%M')
 
     # Get Load data from ENTSO-E
-    get_load_data_from_entsoe(regions, start_time, end_time, output_path)
+    # get_load_data_from_entsoe(regions, start_time, end_time, output_path)
 
     # Define the start and end dates
     start_date = datetime.datetime.strptime('202201010000', '%Y%m%d%H%M')
@@ -132,7 +132,7 @@ def main(start_time, end_time, output_path):
             period_end = (current_date + datetime.timedelta(days=1)).strftime('%Y%m%d%H%M')
 
             # Submit the task to the executor
-            future = executor.submit(get_gen_data_from_entsoe, regions, period_start, period_end, output_path)
+            future = executor.submit(get_gen_data_from_entsoe, regions, period_start, period_end, './ndata')
             futures.append(future)
 
             current_date += datetime.timedelta(days=1)
