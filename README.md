@@ -8,30 +8,34 @@ Template repository to work with for the NUWE - Schneider Electric European Data
 - 1d9cd4bd-f8aa-476c-8cc1-3442dc91506d
 
 
-Repo Structure:
-|__README.md
-|__requirements.txt
-|
-|__data
-|  |__train.csv
-|  |__test.csv
-|
-|__src
-|  |__data_ingestion.py
-|  |__data_processing.py
-|  |__model_training.py (or model_training.ipynb)
-|  |__model_prediction.py
-|  |__utils.py
-|
-|__models
-|  |__{countries}_model.pkl
-|
-|__scripts
-|  |__run_pipeline.sh
-|
-|__predictions
-   |__example_predictions.json
-   |__predictions.json
+#Repo Structure:
+
+## Directory Structure Explanation
+
+- **`data/`**: Contains CSV files for training (`train.csv`) and testing (`test.csv`) data.
+
+- **`src/`**: Source code directory containing Python scripts for different pipeline of the project:
+  - `data_ingestion.py`: Script for loading and ingesting data.
+  - `data_processing.py`: Script for processing and cleaning data.
+  - `model_training.py` (or `model_training.ipynb`): Script or notebook for training forecasting models.
+  - `model_prediction.py`: Script for making predictions using trained models.
+  - `utils.py`: Utility functions used across scripts.
+
+- **`models/`**: Directory to store trained Prophet models (e.g., `{countries}_model.pkl`).
+
+- **`scripts/`**: Contains shell scripts or batch files for running the pipeline. For example, `run_pipeline.sh` might be used to execute the entire workflow.
+
+- **`predictions/`**: Directory to store prediction results. It includes `example_predictions.json` and `predictions.json`.
+
+
+## Instructions
+
+1. Install dependencies by running:
+
+   ```bash
+   pip install -r requirements.txt
+
+2. `run_pipeline.sh`
 
 
 
