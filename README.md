@@ -87,7 +87,7 @@ pip install pandas prophet scikit-learn numpy matplotlib
 ## Data Ingestion
 The first step in our approach is Data Ingestion. We leverage the ENTSO-E Transparency portal API to retrieve time-series data of hourly granularity. The data includes electricity consumption (load), wind energy generation, solar energy generation, and other green energy generation for nine European countries. This API allows us to access real-time and historical data, providing the foundation for our forecasting models.
 
-Period: 01-01-2022 to 01-01-2023,
+Period: 01-01-2022 to 01-01-2023
 Countries: Spain, UK, Germany, Denmark, Sweden, Hungary, Italy, Poland, and the Netherlands.
 PsrTypes: Green Energy we focused on
 | Code | Meaning                           |
@@ -112,17 +112,18 @@ Following Data Ingestion, the next crucial step is Data Processing. The raw data
 #### Why did we loose it? However, it is up to you to define the specific measures you are monitoring.
 
 ## Model Training
-The heart of our approach lies in Model Training. We utilize machine learning techniques, particularly time-series forecasting models **Prophet**, to train on the processed dataset. The goal is to capture the patterns and trends in surplus energy generation for each country. Training is performed separately for each country, allowing the models to learn country-specific nuances.
+The heart of our approach lies in Model Training. We utilize machine learning techniques, particularly time-series forecasting models **Prophet**, to train on the processed dataset. The goal is to capture the patterns and trends in surplus energy generation for each country. Training is performed separately for each country, allowing the models to learn country-specific nuances. We split the daa 80% for training and 20% for testing.
 
 ## Model Prediction
-Once the models are trained, we save them in a custom pickle (.pkl) corresponding to each country. Using the trained models, we make predictions for each country on which will have the highest surplus of green energy in the next hour. This prediction is valuable for making informed decisions on optimizing computing tasks to utilize green energy effectively and reduce CO2 emissions. The predictions are then saved in the 'predictions.json' file.
+Once the models are trained, we save them in a custom pickle (.pkl) corresponding to each country. Using the trained models, we make predictions for each country on which will have the highest surplus of green energy in the next hour.
+We take 442 predicted forecast for our final output. This prediction is valuable for making informed decisions on optimizing computing tasks to utilize green energy effectively and reduce CO2 emissions. The predictions are then saved in the 'predictions.json' file.  We rank the highest forecast per hour for each country to determine the most surplus. We also monitor and evaluate our model by plotting the actual vs forecast as well as obtating the metric score for MAE and RMSE. Example of the prsdiction forecast is as below.
 
 ![actual_vs_forecast_SP](https://github.com/Chidiebere-Ogbuchi/SE-Europe-Data_Challenge_Template/assets/57390599/70800a7c-42b1-49c6-b371-8b464566d86c)
 
 
 
 Our approach is designed to align with Schneider Electric's vision for sustainability, aiming not only to predict energy surpluses accurately but also to contribute to reducing the environmental impact of the computing industry. The modular structure of Data Ingestion, Data Processing, Model Training, and Model Prediction allows for flexibility, scalability, and easy integration of new methodologies or models in the future.
-
+However, it iw worthy to note that discrepancy in classfication score may occur due to varaition in datapoint of the raw_data from the API.
 #### Other Model recommendations are SARIMA and LSTM
 
 
