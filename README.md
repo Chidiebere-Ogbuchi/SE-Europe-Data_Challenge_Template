@@ -117,6 +117,10 @@ The heart of our approach lies in Model Training. We utilize machine learning te
 ## Model Prediction
 Once the models are trained, we save them in a custom pickle (.pkl) corresponding to each country. Using the trained models, we make predictions for each country on which will have the highest surplus of green energy in the next hour. This prediction is valuable for making informed decisions on optimizing computing tasks to utilize green energy effectively and reduce CO2 emissions. The predictions are then saved in the 'predictions.json' file.
 
+![actual_vs_forecast_SP](https://github.com/Chidiebere-Ogbuchi/SE-Europe-Data_Challenge_Template/assets/57390599/70800a7c-42b1-49c6-b371-8b464566d86c)
+
+
+
 Our approach is designed to align with Schneider Electric's vision for sustainability, aiming not only to predict energy surpluses accurately but also to contribute to reducing the environmental impact of the computing industry. The modular structure of Data Ingestion, Data Processing, Model Training, and Model Prediction allows for flexibility, scalability, and easy integration of new methodologies or models in the future.
 
 #### Other Model recommendations are SARIMA and LSTM
