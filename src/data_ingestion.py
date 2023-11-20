@@ -3,7 +3,7 @@ import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from utils import perform_get_request, xml_to_load_dataframe, xml_to_gen_data
 
-def get_load_data_from_entsoe(regions, periodStart='202201010000', periodEnd='202301010000', output_path='./data'):
+def get_load_data_from_entsoe(regions, periodStart='202201010000', periodEnd='202212310000', output_path='./data/load_data'):
     
     # TODO: There is a period range limit of 1 year for this API. Process in 1 year chunks if needed
     
@@ -37,7 +37,7 @@ def get_load_data_from_entsoe(regions, periodStart='202201010000', periodEnd='20
        
     return
 
-def get_gen_data_from_entsoe(regions, periodStart='202201010000', periodEnd='202301010000', output_path='./data'):
+def get_gen_data_from_entsoe(regions, periodStart='202201010000', periodEnd='202212310000', output_path='./data/gen_data'):
     
     # TODO: There is a period range limit of 1 day for this API. Process in 1 day chunks if needed
 
@@ -80,13 +80,13 @@ def parse_arguments():
     parser.add_argument(
         '--start_time', 
         type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'), 
-        default=datetime.datetime(2023, 1, 1), 
+        default=datetime.datetime(2022, 1, 1), 
         help='Start time for the data to download, format: YYYY-MM-DD'
     )
     parser.add_argument(
         '--end_time', 
         type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'), 
-        default=datetime.datetime(2023, 1, 2), 
+        default=datetime.datetime(2022, 12, 31), 
         help='End time for the data to download, format: YYYY-MM-DD'
     )
     parser.add_argument(
@@ -117,29 +117,29 @@ def main(start_time, end_time, output_path):
     end_time = end_time.strftime('%Y%m%d%H%M')
 
     # Get Load data from ENTSO-E
-    # get_load_data_from_entsoe(regions, start_time, end_time, output_path)
+    get_load_data_from_entsoe(regions, start_time, end_time, output_path)
 
     # Define the start and end dates
     start_date = datetime.datetime.strptime('202201010000', '%Y%m%d%H%M')
-    end_date = datetime.datetime.strptime('202301010000', '%Y%m%d%H%M')
+    end_date = datetime.datetime.strptime('202212310000', '%Y%m%d%H%M')
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = []
-        current_date = start_date
+    # with ThreadPoolExecutor(max_workers=10) as executor:
+        # futures = []
+        # current_date = start_date
 
-        while current_date <= end_date:
-            period_start = current_date.strftime('%Y%m%d%H%M')
-            period_end = (current_date + datetime.timedelta(days=1)).strftime('%Y%m%d%H%M')
+        # while current_date <= end_date:
+        #     period_start = current_date.strftime('%Y%m%d%H%M')
+        #     period_end = (current_date + datetime.timedelta(days=1)).strftime('%Y%m%d%H%M')
 
-            # Submit the task to the executor
-            future = executor.submit(get_gen_data_from_entsoe, regions, period_start, period_end, './ndata')
-            futures.append(future)
+        #     # Submit the task to the executor
+        #     future = executor.submit(get_gen_data_from_entsoe, regions, period_start, period_end, './ndata')
+        #     futures.append(future)
 
-            current_date += datetime.timedelta(days=1)
+        #     current_date += datetime.timedelta(days=1)
 
-        # Wait for all threads to finish
-        for future in as_completed(futures):
-            future.result()
+        # # Wait for all threads to finish
+        # for future in as_completed(futures):
+        #     future.result()
 
 
 if __name__ == "__main__":
