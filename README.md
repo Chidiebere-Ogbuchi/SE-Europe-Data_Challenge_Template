@@ -106,6 +106,20 @@ PsrTypes: Green Energy we focused on
 
 ## Data Processing
 Following Data Ingestion, the next crucial step is Data Processing. The raw data obtained from the API might be at varying intervals (15 min, 30 min, or 1h) for different countries. To ensure consistency, we homogenize the data to 1-hour intervals. This involves cleaning, aggregating, and structuring the data to create a cohesive dataset for training and testing our models. The processed data is then stored in 'train.csv' and 'test.csv' files. We answer the following?
+### Structure of the data
+
+The provided data was distributed at varying intervals, our analysis deduced the following pattern interms of the time interval of the data, the only variation is introduced by Spain which is 1h in LOAD and 15min in GEN.
+
+| Category  | Countries                              | Duration |
+|-----------|----------------------------------------|----------|
+| LOAD | Germany, Netherlands, Hungary        | 15min    |
+| LOAD | UK                                     | 30min    |
+| LOAD | Italy, Denmark, Poland, Sweden, Spain  | 1h      |
+| GEN  | Germany, Netherlands, Hungary, Spain   | 15min    |
+| GEN  | UK                                     | 30min    |
+| GEN  | Italy, Denmark, Poland, Sweden         | 1h      |
+
+
 #### How many data points have we ingested?
 #### Do we loose any data during data processing?
 #### Which data have we lost?
