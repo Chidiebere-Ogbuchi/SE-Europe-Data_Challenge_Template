@@ -124,6 +124,40 @@ The provided data was distributed at varying intervals, our analysis deduced the
 The figure deptics how we preprocessed the data, given the gen data was date to date based files while the load data was already aggregated, we've to process them differently and perform the imputation while finally aggregating and flattening the whole data.
 ![Preprocessing Pipeline Flow Chart](./assets/preprocessing_pipeline.svg)
 
+Certainly! Here's a rewritten version for your README file:
+
+**Data Transformation and Interpolation Process**
+
+1. **Data Structure Transformation:**
+   - The original load data was transformed into a structure resembling generator data.
+   - This transformation aimed to simplify subsequent data manipulation steps.
+
+2. **Setting Load PsrType as 'AA':**
+   - The PsrType for the Load data was uniformly set to 'AA' for streamlined manipulation.
+
+3. **Date Filtering:**
+   - The data was filtered to include only entries from January 1, 2022, to January 1, 2023.
+
+4. **End Time Flooring by Hour:**
+   - The End Time values were floored by the hour to facilitate the evaluation of intervals.
+   - Each hourly interval was expected to consist of four periods: 00, 15, 30, and 45 minutes.
+
+5. **Interpolation of Missing Intervals:**
+   - Rows with missing intervals were interpolated by utilizing the preceding data row, while preserving the quantity value.
+
+6. **Quantity Value Interpolation:**
+   - The quantity values underwent interpolation using the linear method.
+   - This interpolation was performed independently for each country and PsrType, ensuring accuracy.
+   - The `interpolate` method with parameters `method='linear'`, `axis=0`, and `limit_direction='both'` was applied. This operation was conducted in-place for efficiency.
+
+7. **Duplicate Removal and Dataset Exploration:**
+   - Duplicates were removed from the dataset.
+   - Further exploration and validation of the datasets were undertaken to ensure that no intervals were missing or incorrectly interpolated.
+
+8. **Final Data Structure:**
+   - The final structure of the data includes the following columns: PsrType, CountryID, floorEndTime, and quantity.
+
+This comprehensive process ensures the reliability and completeness of the transformed data, providing a solid foundation for subsequent analyses or applications.
 
 
 ## Model Training
