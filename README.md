@@ -157,7 +157,7 @@ Certainly! Here's a rewritten version for your README file:
 8. **Final Data Structure:**
    - The final structure of the data includes the following columns: PsrType, CountryID, floorEndTime, and quantity.
 
-This comprehensive process ensures the reliability and completeness of the transformed data, providing a solid foundation for subsequent analyses or applications.
+This comprehensive process ensures the reliability and completeness of the transformed data, providing a solid foundation for subsequent analyses or applications. All these were done individually for each country and respective PsrType to avoid data leakage.
 
 
 ## Model Training
