@@ -131,16 +131,16 @@ def make_predictions(df, model, country):
 
 
         
-        df_prophet = prep_for_prophet(df, index='StartTime', target_col='surplus')
+        df_prophet = prep_for_prophet(df, index='floorEndTime', target_col='surplus')
         
 
         mae = mean_absolute_error(df_prophet['y'], base_model_results['yhat'])
         mse = mean_squared_error(df_prophet['y'], base_model_results['yhat'])
         rmse = np.sqrt(mse)
         
-        metrics_list.append({'Country': country, 'MAE': mae, 'MSE': mse, 'RMSE': rmse})
+        metrics_list.append({'CountryID': country, 'MAE': mae, 'MSE': mse, 'RMSE': rmse})
         
-        result_comparison = pd.DataFrame({'Country': country, 'Timestamp': df_prophet['ds'],
+        result_comparison = pd.DataFrame({'CountryID': country, 'Timestamp': df_prophet['ds'],
                                           'Actual': df_prophet['y'].values, 'Forecast': base_model_results['yhat'].values})
         result_comparison_list.append(result_comparison)
 
@@ -188,8 +188,8 @@ def surplus(metrics_list, result_comparison_list):
     winning_countries = result_comparison_df.loc[winning_indices].reset_index(drop=True)
     winning_countries = winning_countries.drop_duplicates(subset='Timestamp').reset_index(drop=True)
     
-    country_code_mapping = {'SP': 0, 'UK': 1, 'DE': 2, 'DK': 3, 'SE': 4, 'HU': 5, 'IT': 6, 'PO': 7, 'NL': 8}
-    winning_countries['Country_Rank'] = winning_countries['Country'].map(country_code_mapping)
+    country_code_mapping = {'SP': 0, 'UK': 1, 'DE': 2, 'DK': 3, 'SE': 4, 'HU': 5, 'IT': 6, 'PO': 7, 'NE': 8}
+    winning_countries['Country_Rank'] = winning_countries['CountryID'].map(country_code_mapping)
     
     return winning_countries
 
@@ -253,7 +253,7 @@ def main(input_file, model_file, output_file):
     - None
     """
     df = load_data(input_file)
-    countries = ['DE', 'DK', 'SP', 'UK', 'HU', 'SE', 'IT', 'PO', 'NL']
+    countries = ['DE', 'DK', 'SP', 'UK', 'HU', 'SE', 'IT', 'PO', 'NE']
     predictions = ([], [])  # Initialize empty lists for metrics and result comparisons
 
     for country in countries:
@@ -263,7 +263,7 @@ def main(input_file, model_file, output_file):
             print(f"Model not found for {country}. Skipping...")
             continue
 
-        country_df = df[df['Country'] == country]
+        country_df = df[df['CountryID'] == country]
         country_predictions = make_predictions(country_df, model, country)
         predictions = ([*a, *b] for a, b in zip(predictions, country_predictions))
 
