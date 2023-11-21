@@ -140,7 +140,7 @@ Certainly! Here's a rewritten version for your README file:
 
 4. **End Time Flooring by Hour:**
    - The End Time values were floored by the hour to facilitate the evaluation of intervals.
-   - Each hourly interval was expected to consist of four periods: 00, 15, 30, and 45 minutes.
+   - Each hourly interval was expected to consist of equal periods: 00, 15, 30, and 45 minutes with respect to the pattern identified above.
 
 5. **Interpolation of Missing Intervals:**
    - Rows with missing intervals were interpolated by utilizing the preceding data row, while preserving the quantity value.
