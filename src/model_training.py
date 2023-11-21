@@ -51,6 +51,7 @@ import matplotlib.pyplot as plt
 import argparse
 import pickle
 
+
 def load_data(file_path):
     """
     Load data from a CSV file, preprocess it, and filter relevant information.
@@ -62,14 +63,37 @@ def load_data(file_path):
     - pd.DataFrame: Processed and filtered DataFrame.
     """
     df = pd.read_csv(file_path)
-    df = df.drop(columns=['AreaID', 'EndTime'])
-    countries = ['DE', 'DK', 'SP', 'UK', 'HU', 'SE', 'IT', 'PO', 'NL']
+
+    # Drop unnecessary columns
+    # df = df.drop(columns=['AreaID', 'EndTime'])
+
+    # Filter countries and PsrTypes
+    countries = ['DE', 'DK', 'SP', 'UK', 'HU', 'SE', 'IT', 'PO', 'NE']
     PsrTypes = ['B01', 'B09', 'B10', 'B11', 'B12', 'B13', 'B15', 'B16', 'B18', 'B19', 'AA']
-    df = df[df['Country'].isin(countries) & df['PsrType'].isin(PsrTypes)]
-    df['StartTime'] = pd.to_datetime(df['StartTime'])
-    df = df.groupby(['Country', 'StartTime', 'DataType'])['total'].sum().unstack(fill_value=0).reset_index()
-    df['surplus'] = df['gen'] - df['load']
+    df = df[df['CountryID'].isin(countries) & df['PsrType'].isin(PsrTypes)]
+
+    # Convert 'floorEndTime' to datetime
+    df['floorEndTime'] = pd.to_datetime(df['floorEndTime'])
+
+    # Change PsrType to 'BB' for rows where it is not 'AA'
+    df.loc[df['PsrType'] != 'AA', 'PsrType'] = 'BB'
+
+    # Group by specified columns and aggregate quantity
+    df = df.groupby(['floorEndTime', 'PsrType', 'CountryID']).agg({'quantity': 'sum'}).reset_index()
+
+    # Create separate DataFrames for 'AA' and 'BB'
+    aa_df = df[df['PsrType'] == 'AA']
+    bb_df = df[df['PsrType'] == 'BB']
+
+    # Merge the DataFrames on 'floorEndTime', 'CountryID'
+    merged_df = pd.merge(aa_df, bb_df, on=['floorEndTime', 'CountryID'], suffixes=('_AA', '_BB'), how='outer')
+
+    # Calculate surplus as the difference between 'BB' and 'AA' quantities
+    merged_df['surplus'] = merged_df['quantity_BB'] - merged_df['quantity_AA']
+    df = merged_df
     return df
+
+
 
 def split_data(df):
     """
@@ -83,11 +107,11 @@ def split_data(df):
     """
     start_split_date = '2022-01-01'
     end_split_date = '2022-04-09'
-    data = df.loc[(df['StartTime'] >= start_split_date) & (df['StartTime'] < end_split_date)]
-    total_days = (data['StartTime'].max() - data['StartTime'].min()).days
-    split_date = data['StartTime'].min() + pd.to_timedelta(0.8 * total_days, unit='D')
-    train = data[data['StartTime'] <= split_date]
-    test = data[data['StartTime'] > split_date]
+    data = df.loc[(df['floorEndTime'] >= start_split_date) & (df['floorEndTime'] < end_split_date)]
+    total_days = (data['floorEndTime'].max() - data['floorEndTime'].min()).days
+    split_date = data['floorEndTime'].min() + pd.to_timedelta(0.8 * total_days, unit='D')
+    train = data[data['floorEndTime'] <= split_date]
+    test = data[data['floorEndTime'] > split_date]
     test_data_path = './data/test_data.csv'
     test.to_csv(test_data_path, index=False)
     print(f"Training Data Size: {len(train)}, Test Data Size: {len(test)}")
@@ -122,12 +146,12 @@ def train_model(train):
     - dict: Dictionary containing trained Prophet models for each country.
     """
     trained_models = {}
-    countries = ['DE', 'DK', 'SP', 'UK', 'HU', 'SE', 'IT', 'PO', 'NL']
+    countries = ['DE', 'DK', 'SP', 'UK', 'HU', 'SE', 'IT', 'PO', 'NE']
 
     for country in countries:
         try:
-            country_data = train[train['Country'] == country]
-            prophet_data = prep_for_prophet(country_data, index='StartTime', target_col='surplus')
+            country_data = train[train['CountryID'] == country]
+            prophet_data = prep_for_prophet(country_data, index='floorEndTime', target_col='surplus')
             model = Prophet()
             model.fit(prophet_data)
             trained_models[country] = model
@@ -179,7 +203,7 @@ def parse_arguments():
     parser.add_argument(
         '--input_file', 
         type=str, 
-        default='data/processed_data.csv', 
+        default='data/final_preprocessed_data.csv', 
         help='Path to the processed data file to train the model'
     )
     parser.add_argument(
